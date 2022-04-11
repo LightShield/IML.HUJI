@@ -7,6 +7,7 @@ class UnivariateGaussian:
     """
     Class for univariate Gaussian Distribution Estimator
     """
+
     def __init__(self, biased_var: bool = False) -> UnivariateGaussian:
         """
         Estimator for univariate Gaussian mean and variance parameters
@@ -51,7 +52,13 @@ class UnivariateGaussian:
         Sets `self.mu_`, `self.var_` attributes according to calculated estimation (where
         estimator is either biased or unbiased). Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
+        ### formulas taken from lab1 ###
+        self.mu_ = np.mean(X)
+
+        var_numerator = np.sum(np.power((X - self.mu_), 2))
+        var_denominator = X.size if self.biased_ else (X.size - 1)
+
+        self.var_ = var_numerator / var_denominator
 
         self.fitted_ = True
         return self
@@ -76,7 +83,13 @@ class UnivariateGaussian:
         """
         if not self.fitted_:
             raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+
+        ### formula taken from https://en.wikipedia.org/wiki/Probability_density_function#Families_of_densities ###
+
+        density_numerator = np.exp(-0.5 * (np.power(X - self.mu_, 2) / self.var_))
+        density_denominator = np.sqrt(2 * np.pi * self.var_)
+
+        return density_numerator / density_denominator
 
     @staticmethod
     def log_likelihood(mu: float, sigma: float, X: np.ndarray) -> float:
@@ -97,13 +110,17 @@ class UnivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+        ### formula taken from under "MLE of μ" at http://jrmeyer.github.io/machinelearning/2017/08/18/mle.html
+        return - (X.size / 2) * np.log(2 * np.pi * sigma) - np.sum(np.power(X - mu, 2)) / (2 * sigma)
+
+
 
 
 class MultivariateGaussian:
     """
     Class for multivariate Gaussian Distribution Estimator
     """
+
     def __init__(self):
         """
         Initialize an instance of multivariate Gaussian estimator
@@ -143,7 +160,14 @@ class MultivariateGaussian:
         Sets `self.mu_`, `self.cov_` attributes according to calculated estimation.
         Then sets `self.fitted_` attribute to `True`
         """
-        raise NotImplementedError()
+        self.mu_ = np.apply_along_axis(func1d=np.mean, axis=0, arr=X).T
+
+        zero_meaned_X = X - self.mu_
+        samples_count = X.shape[0]
+
+        cov_numerator = zero_meaned_X.T @ zero_meaned_X
+        cov_denominator = samples_count - 1
+        self.cov_ = cov_numerator / cov_denominator
 
         self.fitted_ = True
         return self
@@ -166,9 +190,18 @@ class MultivariateGaussian:
         ------
         ValueError: In case function was called prior fitting the model
         """
-        if not self.fitted_:
-            raise ValueError("Estimator must first be fitted before calling `pdf` function")
-        raise NotImplementedError()
+
+        # https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.multivariate_normal.html
+        d = X.shape[1]
+        zero_meaned_X = X - self.mu_
+        inverted_cov = inv(self.cov_)
+
+        univar_action = lambda x_i: np.exp(-0.5 * (x_i @ inverted_cov * x_i.T))
+
+        pdf_enumerator = np.apply_along_axis(univar_action, 1, zero_meaned_X)
+        pdf_denominator = np.sqrt(np.power(2 * np.pi, d) * det(self.cov_))
+
+        return pdf_enumerator / pdf_denominator
 
     @staticmethod
     def log_likelihood(mu: np.ndarray, cov: np.ndarray, X: np.ndarray) -> float:
@@ -189,4 +222,12 @@ class MultivariateGaussian:
         log_likelihood: float
             log-likelihood calculated
         """
-        raise NotImplementedError()
+        # taken from Q9 in the theoretical part
+        m = X.shape[0]
+        d = X.shape[1]
+        zero_meaned_X = X - mu
+
+        return - 0.5 * \
+               (d * m * np.log(2 * np.pi) +
+                m * np.log(det(cov)) +
+                np.sum(zero_meaned_X @ inv(cov) * zero_meaned_X))
