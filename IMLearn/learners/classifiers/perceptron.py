@@ -31,6 +31,7 @@ class Perceptron(BaseEstimator):
         holds the loss value of the algorithm during training.
         training_loss_[i] is the loss value of the i'th training iteration.
         to be filled in `Perceptron.fit` function.
+        #todo return training los somewhere?
 
     """
     def __init__(self,
@@ -73,6 +74,7 @@ class Perceptron(BaseEstimator):
         self.callback_ = callback
         self.coefs_ = None
 
+
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
         Fit a halfspace to to given samples. Iterate over given data as long as there exists a sample misclassified
@@ -90,7 +92,22 @@ class Perceptron(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.fit_intercept_`
         """
-        raise NotImplementedError()
+        X = np.c_[X, np.ones(X.shape[0])] if self.include_intercept_ else X
+        self.coefs_ = np.zeros(X.shape[1])
+
+        for i in range(self.max_iter_):
+            moved_hyper_plane_in_iterattion = False
+
+            for j in range(X.shape[0]):
+                if y[i] * (self.coefs_ @ X[i]) <= 0:
+                    self.coefs_ += (y[i] * X[i])
+                    moved_hyper_plane_in_iterattion = True
+
+            self.callback_(self, [X, y])
+
+            if moved_hyper_plane_in_iterattion:
+                continue
+            break
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """

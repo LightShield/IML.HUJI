@@ -128,18 +128,41 @@ if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
     data, pred = load_data("../datasets/house_prices.csv")
-    print(data[data[BATHROOMS] > 20])
-    # Question 2 - Feature evaluation with respect to response
-    #todo remove outputpath before submission
-    # feature_evaluation(X=data, y=pred, output_path="C:/Users/light/OneDrive/Desktop/School/CS/IML/IML.HUJI/temp")
 
-    # # Question 3 - Split samples into training- and testing sets.
-    split_train_test(X=data, y=pred)
-    # # Question 4 - Fit model over increasing percentages of the overall training data
-    # # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
-    # #   1) Sample p% of the overall training data
-    # #   2) Fit linear model (including intercept) over sampled set
-    # #   3) Test fitted model over test set
-    # #   4) Store average and variance of loss over test set
-    # # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
-    # raise NotImplementedError()
+    # Question 2 - Feature evaluation with respect to response
+    feature_evaluation(X=data, y=pred)
+
+    # Question 3 - Split samples into training- and testing sets.
+    train_X, train_Y, test_X, test_Y = split_train_test(X=data, y=pred, train_proportion=.75)
+
+    # Question 4 - Fit model over increasing percentages of the overall training data
+    # For every percentage p in 10%, 11%, ..., 100%, repeat the following 10 times:
+    #   1) Sample p% of the overall training data
+    #   2) Fit linear model (including intercept) over sampled set
+    #   3) Test fitted model over test set
+    #   4) Store average and variance of loss over test set
+    # Then plot average loss as function of training size with error ribbon of size (mean-2*std, mean+2*std)
+    RESPONSE_MARKER = "response"
+    model = LinearRegression(include_intercept=False)
+    all_train_data = train_X
+    all_train_data.insert(loc=len(all_train_data.columns), column=RESPONSE_MARKER, value=train_Y.values)
+
+    model_loss = []
+    precentages = np.round(np.arange(0.1, 1.01, 0.01), 2)
+    for p in precentages:
+        print(f"calculating loss for p={int(p*100)}%...")
+        p_loss = []
+        for i in range(10):
+            sampled_data = all_train_data.sample(frac=p)
+            model.fit(X=sampled_data.drop(columns=RESPONSE_MARKER), y=sampled_data[RESPONSE_MARKER])
+            p_loss.append(model.loss(test_X, test_Y))
+        numpy_p_loss = np.array(p_loss)
+        model_loss.append([numpy_p_loss.mean(), numpy_p_loss.std()])
+    print("done. plotting findings...")
+
+    model_loss = np.array(model_loss)
+    plt.clf()
+    plt.xlabel("% out of training sample")
+    plt.ylabel("mean of measured loss")
+    plt.errorbar(x=precentages, y=model_loss[:, 0], yerr=2 * model_loss[:, 1])
+    plt.show()
