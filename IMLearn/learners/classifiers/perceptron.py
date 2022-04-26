@@ -27,13 +27,11 @@ class Perceptron(BaseEstimator):
         Coefficients vector fitted by Perceptron algorithm. To be set in
         `Perceptron.fit` function.
 
-    training_loss_: array of floats
-        holds the loss value of the algorithm during training.
-        training_loss_[i] is the loss value of the i'th training iteration.
-        to be filled in `Perceptron.fit` function.
-        #todo return training los somewhere?
-
+    callback_: Callable[[Perceptron, np.ndarray, int], None]
+            A callable to be called after each update of the model while fitting to given data
+            Callable function should receive as input a Perceptron instance, current sample and current response
     """
+
     def __init__(self,
                  include_intercept: bool = True,
                  max_iter: int = 1000,
@@ -52,28 +50,12 @@ class Perceptron(BaseEstimator):
         callback: Callable[[Perceptron, np.ndarray, int], None]
             A callable to be called after each update of the model while fitting to given data
             Callable function should receive as input a Perceptron instance, current sample and current response
-
-        Attributes
-        ----------
-        include_intercept_: bool
-            Should fitted model include an intercept or not
-
-        max_iter): int, default = 1000
-            Maximum number of passes over training data
-
-        callback_: Callable[[Perceptron, np.ndarray, int], None]
-            A callable to be called after each update of the model while fitting to given data
-            Callable function should receive as input a Perceptron instance, current sample and current response
-
-        coefs_: ndarray of shape (n_features,) or (n_features+1,)
-            Coefficients vector fitted by Perceptron. To be set in `Perceptron.fit` function.
         """
         super().__init__()
         self.include_intercept_ = include_intercept
         self.max_iter_ = max_iter
         self.callback_ = callback
         self.coefs_ = None
-
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -95,15 +77,14 @@ class Perceptron(BaseEstimator):
         X = np.c_[X, np.ones(X.shape[0])] if self.include_intercept_ else X
         self.coefs_ = np.zeros(X.shape[1])
 
-        for i in range(self.max_iter_):
+        for j in range(self.max_iter_):
             moved_hyper_plane_in_iterattion = False
 
-            for j in range(X.shape[0]):
+            for i in range(X.shape[0]):
                 if y[i] * (self.coefs_ @ X[i]) <= 0:
                     self.coefs_ += (y[i] * X[i])
+                    self.callback_(self, X[i], y[i])
                     moved_hyper_plane_in_iterattion = True
-
-            self.callback_(self, [X, y])
 
             if moved_hyper_plane_in_iterattion:
                 continue
@@ -123,7 +104,7 @@ class Perceptron(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        raise NotImplementedError()
+        return np.sign(X @ self.coefs_)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -142,4 +123,5 @@ class Perceptron(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        raise NotImplementedError()
+        from ...metrics import misclassification_error
+        return misclassification_error(y_true=y, y_pred=self._predict(X))
