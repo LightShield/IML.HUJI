@@ -41,6 +41,7 @@ class GaussianNaiveBayes(BaseEstimator):
         y : ndarray of shape (n_samples, )
             Responses of input data to fit to
         """
+
         uniques = np.unique(ar=y, return_counts=True)
         self.classes_ = uniques[0]
         self.pi_ = uniques[1] / len(y)
@@ -56,9 +57,9 @@ class GaussianNaiveBayes(BaseEstimator):
             index_of_k = np.nonzero(np.array(y == self.classes_[k]))[0]
             samples_where_class_is_k = np.take(X, index_of_k, axis=0)
             self.mu_[k] = np.sum(samples_where_class_is_k, axis=0) / n[k]
-            self.vars_[k] = np.sum(np.power(samples_where_class_is_k - self.mu_[k], 2), axis=0) / (n[k] - 1)
+            self.vars_[k] = np.sum(np.power(samples_where_class_is_k - self.mu_[k], 2), axis=0) / n[k]
 
-        # assumption of i.i.d, so cov is diagonal
+        # helper for graphs - assumption of i.i.d, so cov is diagonal
         self.cov_ = np.array([np.diag(self.vars_[k]) for k in range(classes_count)])
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
