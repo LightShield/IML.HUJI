@@ -99,28 +99,59 @@ def compare_gaussian_classifiers():
         # Fit models and predict over training set
         naive_bayes = GaussianNaiveBayes()
         naive_bayes.fit(X, y)
-        naive_bayes.predict(X)
-        #
-        # lda = LDA()
-        # lda.fit(X, y)
 
-        # # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
-        # # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
-        # # Create subplots
-        # from IMLearn.metrics import accuracy
-        # raise NotImplementedError()
-        #
-        # # Add traces for data-points setting symbols and colors
-        # raise NotImplementedError()
-        #
-        # # Add `X` dots specifying fitted Gaussians' means
-        # raise NotImplementedError()
-        #
-        # # Add ellipses depicting the covariances of the fitted Gaussians
-        # raise NotImplementedError()
+        lda = LDA()
+        lda.fit(X, y)
+
+        # Plot a figure with two suplots, showing the Gaussian Naive Bayes predictions on the left and LDA predictions
+        # on the right. Plot title should specify dataset used and subplot titles should specify algorithm and accuracy
+        # Create subplots
+        from IMLearn.metrics import accuracy
+
+        naive_bayes_prediction = naive_bayes.predict(X)
+        lda_prediction = lda.predict(X)
+
+        naive_bayes_accuracy = accuracy(y_true=y, y_pred=naive_bayes_prediction)
+        lda_accuracy = accuracy(y_true=y, y_pred=lda_prediction)
+
+        fig = make_subplots(rows=1, cols=2, subplot_titles=[
+            f"Gaussian Naive Bayes (Accuracy = {naive_bayes_accuracy})",
+            f"Linear Discriminant Analysis (Accuracy = {lda_accuracy})"])
+        fig.update_layout(title_text=f"Dataset = {f}")
+
+        # Add traces for data-points setting symbols and colors
+        fig.add_trace(go.Scatter(x=X[:, 0], y=X[:, 1], mode="markers",
+                                 marker=dict(color=naive_bayes_prediction, symbol=y),
+                                 showlegend=False),
+                      row=1, col=1
+                      )
+        fig.add_trace(go.Scatter(x=X[:, 0], y=X[:, 1], mode="markers",
+                                 marker=dict(color=lda_prediction, symbol=y),
+                                 showlegend=False),
+                      row=1, col=2
+                      )
+
+        # Add `X` dots specifying fitted Gaussians' means
+        fig.add_trace(go.Scatter(x=naive_bayes.mu_[:, 0], y=naive_bayes.mu_[:, 1], mode="markers",
+                                 marker=dict(color="black", symbol="x"),
+                                 showlegend=False),
+                      row=1, col=1)
+        fig.add_trace(
+            go.Scatter(x=lda.mu_[:, 0], y=lda.mu_[:, 1], mode="markers", marker=dict(color="black", symbol="x"),
+                       showlegend=False),
+            row=1, col=2)
+
+        # Add ellipses depicting the covariances of the fitted Gaussians
+        fig.add_traces(
+            [get_ellipse(naive_bayes.mu_[pred_class], naive_bayes.cov_[pred_class])
+             for pred_class in range(len(naive_bayes.classes_))],
+            rows=1, cols=1)
+        fig.add_traces([get_ellipse(mu, lda.cov_) for mu in lda.mu_], rows=1, cols=2)
+
+        fig.show()
 
 
 if __name__ == '__main__':
     np.random.seed(0)
-    # run_perceptron()
+    run_perceptron()
     compare_gaussian_classifiers()
