@@ -85,10 +85,9 @@ class Perceptron(BaseEstimator):
                     self.coefs_ += (y[i] * X[i])
                     self.callback_(self, X[i], y[i])
                     moved_hyper_plane_in_iterattion = True
-
-            if moved_hyper_plane_in_iterattion:
-                continue
-            break
+                    break
+            if not moved_hyper_plane_in_iterattion:
+                break
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -104,6 +103,7 @@ class Perceptron(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
+        X = np.c_[X, np.ones(X.shape[0])] if self.include_intercept_ else X
         return np.sign(X @ self.coefs_)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
