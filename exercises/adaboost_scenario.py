@@ -47,12 +47,18 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
     ada.fit(X=train_X, y=train_y)
 
     train_err, test_err = [], []
-
-    for i in range(iterations):
+    iterations_range = np.arange(iterations)
+    for i in iterations_range:
         train_err.append(ada.partial_loss(X=train_X, y=train_y, T=i))
         test_err.append(ada.partial_loss(X=test_X, y=test_y, T=i))
 
-
+    print("before print")
+    go.Figure([
+        go.Scatter(x=iterations_range, y=train_err, mode='markers + lines', name=r'$Train loss'),
+        go.Scatter(x=iterations_range, y=test_err, mode='markers + lines', name=r'$Test loss')]) \
+        .update_layout(title=rf"$\text{{Loss as a function of adaboost iteration}}$",
+                       xaxis=dict(title="Iteration number", tickvals=iterations_range,
+                                  ticktext=iterations_range)).show()
 
     print("survived Q1 first part")
 
@@ -67,7 +73,6 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
     # # Question 4: Decision surface with weighted samples
     # raise NotImplementedError()
 
-
-if __name__ == '__main__':
-    np.random.seed(0)
+    if __name__ == '__main__':
+        np.random.seed(0)
     fit_and_evaluate_adaboost(noise=0)
