@@ -51,7 +51,7 @@ class DecisionStump(BaseEstimator):
         for i in range(feature_count):
             threshold_i, error_i = np.zeros(len(possible_signs)), np.zeros(len(possible_signs))
             for j, sign in enumerate(possible_signs):
-                threshold_i[j], error_i[j] = self._find_threshold(X[i], y, sign)
+                threshold_i[j], error_i[j] = self._find_threshold(values=X[i], labels=y, sign=sign)
 
             i_index_with_min_error = np.argmin(error_i)
             thresholds[i], threshold_errors[i], actual_sign[i] = \
@@ -85,7 +85,7 @@ class DecisionStump(BaseEstimator):
         Feature values strictly below threshold are predicted as `-sign` whereas values which equal
         to or above the threshold are predicted as `sign`
         """
-        return np.where(X[self.j_] >= self.threshold_, self.sign_, -self.sign_)
+        return np.where(X[:, self.j_] >= self.threshold_, self.sign_, -self.sign_)
 
     def _find_threshold(self, values: np.ndarray, labels: np.ndarray, sign: int) -> Tuple[float, float]:
         """
