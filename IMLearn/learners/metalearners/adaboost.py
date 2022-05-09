@@ -56,9 +56,10 @@ class AdaBoost(BaseEstimator):
         sampled_X, sampled_Y = X, y
 
         for t in range(self.iterations_):
+            print("t = ",t)
             self.models_[t].fit(X=sampled_X, y=sampled_Y)
             predictions = self.models_[t].predict(sampled_X)
-            err_t = np.sum(self.D_ * (sampled_Y != predictions))
+            err_t = np.sum(self.D_ * (np.where(sampled_Y != predictions, 1, 0)))
             self.weights_[t] = 0.5 * np.log((1 / err_t) - 1)
             self.D_ *= np.exp(-y * self.weights_[t] * predictions)
             self.D_ /= np.sum(self.D_)

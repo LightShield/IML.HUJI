@@ -117,4 +117,18 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
 if __name__ == '__main__':
     np.random.seed(0)
     fit_and_evaluate_adaboost(noise=0)
+
+    # X = (np.arange(5)+1).reshape(5,1)
+    # y = np.array([1,1,-1,-1,1])
+    # trill = (np.tril(np.full(5, 2)) - 1)
+    # threshold_possiblities = dict([(-1, -trill),
+    #                                (1, trill)])
+    # print(f"threshold_posibilities = {threshold_possiblities}")
+    # print(f"X = {threshold_possiblities[-1]}")
+    # print(f"y = {y}")
+    # print(f"X*y = {threshold_possiblities[-1]*y}")
+    # print(np.count_nonzero(threshold_possiblities[-1]*y < 0,axis=1))
+    # print(f"X*y = {threshold_possiblities[1]*y}")
+    # print(np.count_nonzero(threshold_possiblities[1]*y < 0,axis=1))
+    # ds = DecisionStump().fit(X,y)
     # fit_and_evaluate_adaboost(noise=0.4)

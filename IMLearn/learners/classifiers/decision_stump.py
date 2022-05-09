@@ -44,24 +44,14 @@ class DecisionStump(BaseEstimator):
         feature_count = X.shape[1]
         possible_signs = [-1, 1]
 
-        thresholds = np.zeros(feature_count)
-        threshold_errors = np.zeros(feature_count)
-        actual_sign = np.zeros(feature_count)
-
-        for i in range(feature_count):
-            threshold_i, error_i = np.zeros(len(possible_signs)), np.zeros(len(possible_signs))
-            for j, sign in enumerate(possible_signs):
-                threshold_i[j], error_i[j] = self._find_threshold(values=X[i], labels=y, sign=sign)
-
-            i_index_with_min_error = np.argmin(error_i)
-            thresholds[i], threshold_errors[i], actual_sign[i] = \
-                threshold_i[i_index_with_min_error], \
-                error_i[i_index_with_min_error], \
-                possible_signs[i_index_with_min_error]
-
-        self.j_ = np.argmin(threshold_errors)
-        self.threshold_ = thresholds[self.j_]
-        self.sign_ = actual_sign[self.j_]
+        min_thr, min_err, thr_sign, min_j = np.inf, np.inf, self.sign_, 0
+        for j, sign in product(range(feature_count), possible_signs):
+            thr, thr_err = self._find_threshold(values=X[:, j], labels=y, sign=sign)
+            if thr_err < min_err:
+                min_thr, min_err, thr_sign, min_j = thr, thr_err, sign, j
+        self.j_ = min_j
+        self.threshold_ = min_thr
+        self.sign_ = thr_sign
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -117,17 +107,19 @@ class DecisionStump(BaseEstimator):
         For every tested threshold, values strictly below threshold are predicted as `-sign` whereas values
         which equal to or above the threshold are predicted as `sign`
         """
-        losses_per_threshold = np.zeros(values.shape[0])
-        for i, value in enumerate(values):
-            new_y = np.where(values >= value, sign, -sign)
-            losses_per_threshold[i] = misclassification_error(y_true=labels, y_pred=new_y)
+        sorted_indexs = np.argsort(values)
+        values, labels = values[sorted_indexs], labels[sorted_indexs]
+        loss_if_threshold_is_min_val = np.sum(labels != sign)
 
-        threshold_index = np.argmin(losses_per_threshold)
+        # after the inital loss, for each shift of the threshold by one value
+        # we either increment the loss if the sign was originally equal to the label and we "broke it"
+        # or we decrement our loss if the sign was originally different from the label and we "fixed it"
+        cumulative_incremental_loss = np.cumsum(labels * sign)
+        lossess = np.append(loss_if_threshold_is_min_val,
+                            loss_if_threshold_is_min_val + cumulative_incremental_loss[:-1])
 
-        thr = values[threshold_index]
-        thr_err = losses_per_threshold[threshold_index]
-
-        return thr, thr_err
+        min_loss_ind = np.argmin(lossess)
+        return values[min_loss_ind], lossess[min_loss_ind]
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
