@@ -109,11 +109,12 @@ class DecisionStump(BaseEstimator):
         """
         sorted_indexs = np.argsort(values)
         values, labels = values[sorted_indexs], labels[sorted_indexs]
-        loss_if_threshold_is_min_val = np.sum(labels != sign)
+        misclassifications = np.where(np.sign(labels) != sign, labels, 0)
+        loss_if_threshold_is_min_val = np.abs(np.sum(misclassifications))
 
         # after the inital loss, for each shift of the threshold by one value
-        # we either increment the loss if the sign was originally equal to the label and we "broke it"
-        # or we decrement our loss if the sign was originally different from the label and we "fixed it"
+        # we either increase the loss if the sign was originally equal to the label and we "broke it"
+        # or we decrease our loss if the sign was originally different from the label and we "fixed it"
         cumulative_incremental_loss = np.cumsum(labels * sign)
         lossess = np.append(loss_if_threshold_is_min_val,
                             loss_if_threshold_is_min_val + cumulative_incremental_loss[:-1])

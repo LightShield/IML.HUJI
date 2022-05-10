@@ -56,17 +56,12 @@ class AdaBoost(BaseEstimator):
         sampled_X, sampled_Y = X, y
 
         for t in range(self.iterations_):
-            print("t = ",t)
-            self.models_[t].fit(X=sampled_X, y=sampled_Y)
+            self.models_[t].fit(X=sampled_X, y=sampled_Y * self.D_)
             predictions = self.models_[t].predict(sampled_X)
-            err_t = np.sum(self.D_ * (np.where(sampled_Y != predictions, 1, 0)))
+            err_t = np.sum(self.D_ * (sampled_Y != predictions))
             self.weights_[t] = 0.5 * np.log((1 / err_t) - 1)
             self.D_ *= np.exp(-y * self.weights_[t] * predictions)
             self.D_ /= np.sum(self.D_)
-
-            index_pool = np.random.choice(m, m, replace=True, p=self.D_)
-            sampled_X = X[index_pool]
-            sampled_Y = y[index_pool]
 
     def _predict(self, X):
         """
@@ -101,7 +96,7 @@ class AdaBoost(BaseEstimator):
         loss : float
             Performance under missclassification loss function
         """
-        return misclassification_error(y_true=y, y_pred=self.predict(X=X))
+        return self.partial_loss(X=X, y=y, T=self.iterations_)
 
     def partial_predict(self, X: np.ndarray, T: int) -> np.ndarray:
         """
