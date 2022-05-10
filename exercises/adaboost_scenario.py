@@ -55,7 +55,7 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
     go.Figure([
         go.Scatter(x=iterations_range, y=train_err, mode='markers + lines', name=r'Train loss'),
         go.Scatter(x=iterations_range, y=test_err, mode='markers + lines', name=r'Test loss')]) \
-        .update_layout(title=rf"$\text{{Loss as a function of adaboost iteration}}$",
+        .update_layout(title=rf"$\text{{Loss as a function of adaboost iteration. noise = {noise}}}$",
                        xaxis=dict(title="Iteration number"), yaxis=dict(title="Loss")).show()
 
 
@@ -78,7 +78,7 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
                                                line=dict(color="black", width=1)))],
                        rows=(i // 2) + 1, cols=(i % 2) + 1)
 
-    fig.update_layout(title=rf"$\textbf{{Decision Boundaries Of Model With different Iterations count}}$",
+    fig.update_layout(title=rf"$\textbf{{Decision Boundaries Of Model With different Iterations count. noise = {noise}}}$",
                       margin=dict(t=100)) \
         .update_xaxes(visible=False).update_yaxes(visible=False).show()
 
@@ -95,7 +95,7 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
                                            line=dict(color="black", width=1)))])
 
     fig.update_layout(
-        title=rf"$\textbf{{Decision Boundaries Of Lowest Test Error - Iteration = {best_iteration}, Test Loss = {ada.partial_loss(X=test_X, y=test_y, T=best_iteration)}}}$",
+        title=rf"$\textbf{{Decision Boundaries Of Lowest Test Error - Iteration = {best_iteration}, Test Loss = {ada.partial_loss(X=test_X, y=test_y, T=best_iteration)}. noise = {noise}}}$",
         margin=dict(t=100)) \
         .update_xaxes(visible=False).update_yaxes(visible=False).show()
 
@@ -109,7 +109,7 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
                                            line=dict(color="black", width=1)))])
 
     fig.update_layout(
-        title=rf"$\textbf{{Decision Boundaries With Weights of Trainning Data}}$",
+        title=rf"$\textbf{{Decision Boundaries With Weights of Training Data. noise = {noise}}}$",
         margin=dict(t=100)) \
         .update_xaxes(visible=False).update_yaxes(visible=False).show()
 
@@ -117,18 +117,4 @@ def fit_and_evaluate_adaboost(noise, n_learners=250, train_size=5000, test_size=
 if __name__ == '__main__':
     np.random.seed(0)
     fit_and_evaluate_adaboost(noise=0)
-
-    # X = (np.arange(5)+1).reshape(5,1)
-    # y = np.array([1,1,-1,-1,1])
-    # trill = (np.tril(np.full(5, 2)) - 1)
-    # threshold_possiblities = dict([(-1, -trill),
-    #                                (1, trill)])
-    # print(f"threshold_posibilities = {threshold_possiblities}")
-    # print(f"X = {threshold_possiblities[-1]}")
-    # print(f"y = {y}")
-    # print(f"X*y = {threshold_possiblities[-1]*y}")
-    # print(np.count_nonzero(threshold_possiblities[-1]*y < 0,axis=1))
-    # print(f"X*y = {threshold_possiblities[1]*y}")
-    # print(np.count_nonzero(threshold_possiblities[1]*y < 0,axis=1))
-    # ds = DecisionStump().fit(X,y)
-    # fit_and_evaluate_adaboost(noise=0.4)
+    fit_and_evaluate_adaboost(noise=0.4)
