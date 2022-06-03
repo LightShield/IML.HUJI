@@ -79,7 +79,7 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
 def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 500):
     """
     Using sklearn's diabetes dataset use cross-validation to select the best fitting regularization parameter
-    values for Ridge and Lasso regressions
+    valudes for Ridge and Lasso regressions
 
     Parameters
     ----------
@@ -90,13 +90,16 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
         Number of regularization parameter values to evaluate for each of the algorithms
     """
     # Question 6 - Load diabetes dataset and split into training and testing portions
-    raise NotImplementedError()
 
-    # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
-    raise NotImplementedError()
+    X, y = datasets.load_diabetes(return_X_y=True, as_frame=True)
 
-    # Question 8 - Compare best Ridge model, best Lasso model and Least Squares model
-    raise NotImplementedError()
+    train_X, train_Y, test_X, test_Y = split_train_test(X=X, y=y, train_proportion=n_samples / len(X))
+
+    # # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
+    # raise NotImplementedError()
+    #
+    # # Question 8 - Compare best Ridge model, best Lasso model and Least Squares model
+    # raise NotImplementedError()
 
 
 if __name__ == '__main__':
@@ -110,3 +113,5 @@ if __name__ == '__main__':
     # select_polynomial_degree(n_samples=100, noise=0)
     # # Q5
     # select_polynomial_degree(n_samples=1500, noise=10)
+
+    select_regularization_parameter()

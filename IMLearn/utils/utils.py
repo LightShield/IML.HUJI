@@ -37,9 +37,8 @@ def split_train_test(X: pd.DataFrame, y: pd.Series, train_proportion: float = .7
     train_set_size = np.round(sample_count * train_proportion).astype(int)
 
     shuffled_indices = np.random.permutation(sample_count)
-    train_set_indices = shuffled_indices[train_set_size:]
-    test_set_indices = shuffled_indices[:train_set_size]
-
+    train_set_indices = shuffled_indices[:train_set_size]
+    test_set_indices = shuffled_indices[train_set_size:]
     train_X = X.iloc[train_set_indices]
     train_Y = y.iloc[train_set_indices]
     test_X = X.iloc[test_set_indices]

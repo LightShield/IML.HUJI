@@ -79,6 +79,7 @@ class LassoRegression(BaseEstimator):
         Fits model using specified `self.optimizer_` passed when instantiating class and includes an intercept
         if specified by `self.include_intercept_
         """
+        working_samples = np.c_[np.ones(X.shape[0]), X] if self.include_intercept_ else X
         raise NotImplementedError()
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
