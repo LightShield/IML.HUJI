@@ -62,7 +62,7 @@ class RidgeRegression(BaseEstimator):
         """
         working_samples = np.c_[np.ones(X.shape[0]), X] if self.include_intercept_ else X
 
-        a = np.invert((working_samples.T @ working_samples) + (self.lam_ * np.identity(working_samples.shape[1])))
+        a = (working_samples.T @ working_samples) + (self.lam_ * np.identity(working_samples.shape[1]))
         b = working_samples.T @ y
 
         self.coefs_ = np.linalg.solve(a, b)
@@ -81,7 +81,7 @@ class RidgeRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return X @ self.coefs_
+        return np.c_[np.ones(X.shape[0]), X] @ self.coefs_ if self.include_intercept_ else X @ self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """

@@ -68,7 +68,7 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return X @ self.coefs_
+        return np.c_[np.ones(X.shape[0]), X] @ self.coefs_ if self.include_intercept_ else X @ self.coefs_
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """

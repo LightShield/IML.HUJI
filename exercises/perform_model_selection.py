@@ -41,7 +41,6 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     train_Y = np.array(train_Y)
     test_Y = np.array(test_Y)
 
-    # todo uncomment
     go.Figure([
         go.Scatter(x=X, y=true_y, mode='markers', name=r'True model'),
         go.Scatter(x=train_X, y=train_Y, mode='markers', name=r'Train set'),
@@ -72,8 +71,9 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     model.fit(train_X, train_Y)
     best_k_test_err = model.loss(train_X, train_Y)
 
-    print(f"Best k is {best_k} and the test loss is {best_k_test_err}.\n"
-          f"Validation error for the same K is {validation_score[best_k]}")
+    print(f"For n_samples = {n_samples} and noise = {noise}:\n"
+          f"\tBest k is {best_k} and the test loss is {best_k_test_err}.\n"
+          f"\tValidation error for the same K is {validation_score[best_k]}.")
 
 
 def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 500):
@@ -94,19 +94,62 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
     X, y = datasets.load_diabetes(return_X_y=True, as_frame=True)
 
     train_X, train_Y, test_X, test_Y = split_train_test(X=X, y=y, train_proportion=n_samples / len(X))
+    train_X, train_Y, test_X, test_Y = \
+        train_X.to_numpy(), train_Y.to_numpy().reshape(-1, 1), test_X.to_numpy(), test_Y.to_numpy().reshape(-1, 1)
 
-    # # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
-    # raise NotImplementedError()
-    #
-    # # Question 8 - Compare best Ridge model, best Lasso model and Least Squares model
-    # raise NotImplementedError()
+    # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
+    cv_fold_num = 5
+
+    lasso_lambda_values = np.linspace(start=0, stop=1.8, num=n_evaluations)  # todo suppress errors for start=0?
+    ridge_lambda_values = np.linspace(start=0, stop=4, num=n_evaluations)
+
+    lasso_scores, ridge_scores = [], []
+    for lam_lasso, lam_ridge in zip(lasso_lambda_values, ridge_lambda_values):
+        lasso_scores.append(cross_validate(estimator=Lasso(lam_lasso), X=train_X, y=train_Y,
+                                           scoring=mean_square_error, cv=cv_fold_num))
+        ridge_scores.append(cross_validate(estimator=RidgeRegression(lam=lam_ridge), X=train_X, y=train_Y,
+                                           scoring=mean_square_error, cv=cv_fold_num))
+
+    TRAIN_SCORE_LOCATION = 0
+    VALIDATION_SCORE_LOCATION = 1
+    lasso_scores = np.array(lasso_scores)
+    ridge_scores = np.array(ridge_scores)
+
+    go.Figure([
+        go.Scatter(x=lasso_lambda_values, y=lasso_scores[:, TRAIN_SCORE_LOCATION], mode='markers + lines',
+                   name=r'Lasso train score'),
+        go.Scatter(x=lasso_lambda_values, y=lasso_scores[:, VALIDATION_SCORE_LOCATION], mode='markers + lines',
+                   name=r'Lasso Validation score'),
+        go.Scatter(x=ridge_lambda_values, y=ridge_scores[:, TRAIN_SCORE_LOCATION], mode='markers + lines',
+                   name=r'Ridge train score'),
+        go.Scatter(x=ridge_lambda_values, y=ridge_scores[:, VALIDATION_SCORE_LOCATION], mode='markers + lines',
+                   name=r'Ridge Validation score')]) \
+        .update_layout(
+        title=rf"$\text{{Cross-validated error of Lasso & Ridge as a function of the given \lambda, sample count = {n_samples}, n_evaluations = {n_evaluations}}}$",
+        xaxis=dict(title="Lambda"), yaxis=dict(title="Score")).show()
+
+    # Question 8 - Compare best Ridge model, best Lasso model and Least Squares model
+    best_lasso_lambda = lasso_lambda_values[np.argmin(lasso_scores[:, VALIDATION_SCORE_LOCATION])]
+    best_ridge_lambda = ridge_lambda_values[np.argmin(ridge_scores[:, VALIDATION_SCORE_LOCATION])]
+
+    print(f"For Lasso, the best regularization parameter was {best_lasso_lambda}")
+    print(f"For Ridge, the best regularization parameter was {best_ridge_lambda}\n")
+
+    lasso_model = Lasso(alpha=best_lasso_lambda)
+    ridge_model = RidgeRegression(lam=best_ridge_lambda)
+    mle_model = LinearRegression(include_intercept=True)
+
+    for model, model_name in zip([lasso_model, ridge_model, mle_model], ["Lasso", "Ridge", "MLE"]):
+        model.fit(X=train_X, y=train_Y)
+        loss = mean_square_error(y_true=test_Y, y_pred=model.predict(test_X))
+        print(f"the {model_name} model loss is {loss}")
 
 
 if __name__ == '__main__':
     # todo write verbal answers in word for all questions after finished
     np.random.seed(0)
 
-    # todo uncomment
+    # # # todo uncomment
     # # Q1-3
     # select_polynomial_degree(n_samples=100, noise=5)
     # # Q4
