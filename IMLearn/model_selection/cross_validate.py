@@ -38,8 +38,15 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
         Average validation score over folds
     """
 
-    split_indices = np.arange(len(X))
-    chuncks_indices = [split_indices[i:i + cv] for i in range(0, len(split_indices), cv)]
+    def chunckify(X, cv=5):
+        chunks = []
+        for i in range(cv):
+            chunks.append([])
+        for i in range(len(X)):
+            chunks[i % cv].append(i)
+        return chunks
+
+    chuncks_indices = chunckify(X, cv)
 
     validation_loss_sum, train_loss_sum = 0, 0
     for chunk in chuncks_indices:

@@ -69,7 +69,7 @@ def select_polynomial_degree(n_samples: int = 100, noise: float = 5):
     best_k = np.argmin(validation_score)
     model = PolynomialFitting(k=best_k)
     model.fit(train_X, train_Y)
-    best_k_test_err = model.loss(train_X, train_Y)
+    best_k_test_err = model.loss(train_X, train_Y).__round__(2)
 
     print(f"For n_samples = {n_samples} and noise = {noise}:\n"
           f"\tBest k is {best_k} and the test loss is {best_k_test_err}.\n"
@@ -95,12 +95,12 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
 
     train_X, train_Y, test_X, test_Y = split_train_test(X=X, y=y, train_proportion=n_samples / len(X))
     train_X, train_Y, test_X, test_Y = \
-        train_X.to_numpy(), train_Y.to_numpy().reshape(-1, 1), test_X.to_numpy(), test_Y.to_numpy().reshape(-1, 1)
+        train_X.to_numpy(), train_Y.to_numpy(), test_X.to_numpy(), test_Y.to_numpy()
 
     # Question 7 - Perform CV for different values of the regularization parameter for Ridge and Lasso regressions
     cv_fold_num = 5
 
-    lasso_lambda_values = np.linspace(start=0, stop=1.8, num=n_evaluations)  # todo suppress errors for start=0?
+    lasso_lambda_values = np.linspace(start=0, stop=4, num=n_evaluations)
     ridge_lambda_values = np.linspace(start=0, stop=4, num=n_evaluations)
 
     lasso_scores, ridge_scores = [], []
@@ -146,15 +146,13 @@ def select_regularization_parameter(n_samples: int = 50, n_evaluations: int = 50
 
 
 if __name__ == '__main__':
-    # todo write verbal answers in word for all questions after finished
     np.random.seed(0)
 
-    # # # todo uncomment
-    # # Q1-3
-    # select_polynomial_degree(n_samples=100, noise=5)
-    # # Q4
-    # select_polynomial_degree(n_samples=100, noise=0)
-    # # Q5
-    # select_polynomial_degree(n_samples=1500, noise=10)
-
+    # Q1-3
+    select_polynomial_degree(n_samples=100, noise=5)
+    # Q4
+    select_polynomial_degree(n_samples=100, noise=0)
+    # Q5
+    select_polynomial_degree(n_samples=1500, noise=10)
+    # All other Qs
     select_regularization_parameter()
